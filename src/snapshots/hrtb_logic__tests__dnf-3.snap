@@ -1,0 +1,6 @@
+---
+source: src/tests.rs
+expression: "dnf(and_([or(P, Q), or(R, S), or_([T, U, V])]))"
+
+---
+(P ∧ R ∧ T) ∨ (P ∧ R ∧ U) ∨ (P ∧ R ∧ V) ∨ (P ∧ S ∧ T) ∨ (P ∧ S ∧ U) ∨ (P ∧ S ∧ V) ∨ (Q ∧ R ∧ T) ∨ (Q ∧ R ∧ U) ∨ (Q ∧ R ∧ V) ∨ (Q ∧ S ∧ T) ∨ (Q ∧ S ∧ U) ∨ (Q ∧ S ∧ V)

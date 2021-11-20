@@ -42,6 +42,21 @@ fn dnf() {
 }
 
 #[test]
+fn simp() {
+    let simp = |mut f: Formula| {
+        f.simplify();
+        f
+    };
+    let top = || Formula::from(true);
+    let bot = || Formula::from(false);
+
+    assert_display_snapshot!(simp(and(top(), top())), @"True");
+    assert_display_snapshot!(simp(and(top(), bot())), @"False");
+    assert_display_snapshot!(simp(or(bot(), bot())), @"False");
+    assert_display_snapshot!(simp(or(top(), bot())), @"True");
+}
+
+#[test]
 fn qe_atomless() {
     let _ = Y;
 
@@ -85,7 +100,7 @@ fn qe_atomless() {
     // https://rust-lang.zulipchat.com/#narrow/stream/186049-t-compiler.2Fwg-polonius/topic/Quantifier.20elimination.20for.20HRTBs/near/262167372
     assert_display_snapshot!(
         qe(exists(Z, forall(X, iff(subeq(X, Z), and(subeq(X, A), subeq(X, B)))))),
-        @"(('a ⊆ 'b)) ∨ (('b ⊆ 'a))"
+        @"('a ⊆ 'b) ∨ ('b ⊆ 'a)"
     );
 
     // The transitive property: ('a ⊆ 'b) ∧ ('b ⊆ 'c) → 'a ⊆ 'c

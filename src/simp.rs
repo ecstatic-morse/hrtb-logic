@@ -6,7 +6,7 @@ use crate::{Formula, Var};
 impl Formula {
     /// Rewrites a connective to remove boolean constants.
     ///
-    /// Applies the following identities:
+    /// Repeatedly applies the following identities:
     ///
     /// - ¬⊥ → ⊤
     /// - ¬⊤ → ⊥
@@ -14,6 +14,8 @@ impl Formula {
     /// - ⊤ ∧ P → P
     /// - ⊤ ∨ P → ⊤
     /// - ⊥ ∧ P → ⊥
+    ///
+    /// Then, if only a single formula remains in a join, replace the join with that formula.
     pub fn simplify_trivial_connective(&mut self) {
         let (l, short_circ) = match self {
             Formula::Not(box Formula::Trivial(sat)) => {
@@ -35,6 +37,20 @@ impl Formula {
             .any(|f| matches!(f, Formula::Trivial(sat) if *sat == short_circ))
         {
             *self = short_circ.into();
+            return;
+        }
+
+        match l.len() {
+            // If all formulas in the join were trivial but none short-circuited, the `retain`
+            // above will remove them all. In that case, replace `self` with the appropriate
+            // truth value.
+            //
+            // ⊤ ∧ ⊤ → ⊤
+            // ⊥ ∨ ⊥ → ⊥
+            0 => *self = (!short_circ).into(),
+
+            1 => *self = l.pop().unwrap(),
+            _ => {}
         }
     }
 

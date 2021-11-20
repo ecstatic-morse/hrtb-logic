@@ -87,6 +87,21 @@ fn qe_atomless() {
         qe(exists(Z, forall(X, iff(subeq(X, Z), and(subeq(X, A), subeq(X, B)))))),
         @"(('a ⊆ 'b)) ∨ (('b ⊆ 'a))"
     );
+
+    // The transitive property: ('a ⊆ 'b) ∧ ('b ⊆ 'c) → 'a ⊆ 'c
+    assert_display_snapshot!(
+        qe(forall(A, forall(C, forall(B, implies(and(subeq(A, B), subeq(B, C)), subeq(A, C)))))),
+        @"True"
+    );
+
+    // A property of atomless boolean algebras that is not true for finite sets: We can always find
+    // an element that is ordered between any other two (distinct) elements.
+    //
+    // ∀a,c.('a ⊂ 'c) → ∃b.(('a ⊂ 'b) ∧ ('b ⊂ 'c))
+    assert_display_snapshot!(
+        qe(forall(A, forall(C, implies(subne(A, C), exists(B, and(subne(A, B), subne(B, C))))))),
+        @"True"
+    );
 }
 
 #[test]

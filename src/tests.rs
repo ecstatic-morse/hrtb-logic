@@ -117,6 +117,15 @@ fn qe_atomless() {
         qe(forall(A, forall(C, implies(subne(A, C), exists(B, and(subne(A, B), subne(B, C))))))),
         @"True"
     );
+
+    assert_display_snapshot!(
+        qe(forall(A, forall(B, or(subeq(A, B), subne(B, A))))),
+        @"True"
+    );
+    assert_display_snapshot!(
+        qe(forall(A, forall(B, or(subne(A, B), subne(B, A))))),
+        @"False"
+    );
 }
 
 #[test]

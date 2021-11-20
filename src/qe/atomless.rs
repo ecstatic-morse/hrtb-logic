@@ -25,7 +25,7 @@ impl Formula {
 
         debug_assert!(!form.has_quantifiers());
 
-        // ∀x.P ↔ ¬∃x.¬P
+        // ∀a.P ↔ ¬∃a.¬P
         //            ^
         if kind.is_forall() {
             form = !form;
@@ -39,7 +39,7 @@ impl Formula {
             _ => form.eliminate_existential(var),
         };
 
-        // ∀x.P ↔ ¬∃x.¬P
+        // ∀a.P ↔ ¬∃a.¬P
         //        ^
         if kind.is_forall() {
             form = !form
@@ -64,6 +64,8 @@ impl Formula {
                 return true;
             }
 
+            // There are four possible classes of subset relations for
+            // a single quantified variable (`a`):
             match *form {
                 // a ⊆ w
                 Formula::SubsetEq { sub, sup } if sub == exst => uppers.push(sup),

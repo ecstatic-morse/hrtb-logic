@@ -30,6 +30,10 @@ pub fn implies(antecedent: Formula, consequent: Formula) -> Formula {
     or(not(antecedent), consequent)
 }
 
+pub fn iff(a: Formula, b: Formula) -> Formula {
+    and(implies(a.clone(), b.clone()), implies(b, a))
+}
+
 pub fn forall(var: Var, form: Formula) -> Formula {
     Formula::Bind(QuantifierKind::ForAll, var, P::new(form))
 }

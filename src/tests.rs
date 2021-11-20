@@ -6,6 +6,11 @@ const A: Var = Var(0);
 const B: Var = Var(1);
 const C: Var = Var(2);
 const D: Var = Var(3);
+const E: Var = Var(4);
+
+const X: Var = Var(23);
+const Y: Var = Var(24);
+const Z: Var = Var(25);
 
 const P: Formula = prop("P");
 const Q: Formula = prop("Q");
@@ -38,6 +43,7 @@ fn dnf() {
 
 #[test]
 fn qe_atomless() {
+    let dnf = Formula::disjunctive_normal_form;
     let qe = |mut f: Formula| {
         f.eliminate_all_quantifiers();
         f.simplify();
@@ -51,6 +57,11 @@ fn qe_atomless() {
     assert_display_snapshot!(qe(exists(B, and(subeq(A, B), subeq(B, C)))), @"'a ⊆ 'c");
     assert_display_snapshot!(qe(forall(B, subeq(A, B))), @"'a ⊆ 'static");
 
+    assert_display_snapshot!(
+        qe(exists(A, and_([subeq(B, A), subeq(C, A), subeq(A, D), subeq(A, E)]))),
+        @"('b ⊆ 'd) ∧ ('b ⊆ 'e) ∧ ('c ⊆ 'd) ∧ ('c ⊆ 'e)"
+    );
+
     // https://gist.github.com/nikomatsakis/8bfda6c1119727e13ec6e98f33d2b696#future-directions-let-the-trait-solver-solve-higher-ranked-things
     assert_display_snapshot!(
         qe(forall(A, implies(subeq(A, B), subeq(A, C)))),
@@ -63,6 +74,16 @@ fn qe_atomless() {
     assert_display_snapshot!(
         qe(forall(A, implies(or(subeq(A, B), subeq(A, C)), subeq(A, D)))),
         @"('b ⊆ 'd) ∧ ('c ⊆ 'd)"
+    );
+    assert_display_snapshot!(
+        dnf(qe(forall(A, iff(or(subeq(A, B), subeq(A, C)), subeq(A, D))))),
+        @"(('d ⊆ 'b) ∧ ('b ⊆ 'd) ∧ ('c ⊆ 'd)) ∨ (('d ⊆ 'c) ∧ ('b ⊆ 'd) ∧ ('c ⊆ 'd))"
+    );
+
+    // https://rust-lang.zulipchat.com/#narrow/stream/186049-t-compiler.2Fwg-polonius/topic/Quantifier.20elimination.20for.20HRTBs/near/262167372
+    assert_display_snapshot!(
+        qe(exists(Z, forall(X, iff(subeq(X, Z), and(subeq(X, A), subeq(X, B)))))),
+        @"(('a ⊆ 'b)) ∨ (('b ⊆ 'a))"
     );
 }
 

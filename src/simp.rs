@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use std::ops::ControlFlow::{self as Flow, Break, Continue};
 
 use crate::{Formula, Var};

@@ -43,6 +43,8 @@ fn dnf() {
 
 #[test]
 fn qe_atomless() {
+    let _ = Y;
+
     let dnf = Formula::disjunctive_normal_form;
     let qe = |mut f: Formula| {
         f.eliminate_all_quantifiers();

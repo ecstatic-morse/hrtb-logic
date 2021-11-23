@@ -46,8 +46,9 @@ pub const fn subeq(sub: Var, sup: Var) -> Formula {
     Formula::SubsetEq { sub, sup }
 }
 
+/// a ⊂ b, expressed as a ⊆ b ∧ ¬(a ⊆ b ∧ b ⊆ a).
 pub fn subne(sub: Var, sup: Var) -> Formula {
-    not(subeq(sup, sub))
+    and(subeq(sub, sup), !and(subeq(sub, sup), subeq(sup, sub)))
 }
 
 pub fn not_empty(var: Var) -> Formula {

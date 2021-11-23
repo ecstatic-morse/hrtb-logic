@@ -110,7 +110,7 @@ fn qe_atomless() {
     );
 
     // A property of atomless boolean algebras that is not true for finite sets: We can always find
-    // an element that is ordered between any other two (distinct) elements.
+    // an element that is ordered between any other two distinct, comparable elements.
     //
     // ∀a,c.('a ⊂ 'c) → ∃b.(('a ⊂ 'b) ∧ ('b ⊂ 'c))
     assert_display_snapshot!(
@@ -119,11 +119,11 @@ fn qe_atomless() {
     );
 
     assert_display_snapshot!(
-        qe(forall(A, forall(B, or(subeq(A, B), subne(B, A))))),
+        qe(forall(A, forall(B, or(!subeq(A, B), !subeq(B, A))))),
         @"True"
     );
     assert_display_snapshot!(
-        qe(forall(A, forall(B, or(subne(A, B), subne(B, A))))),
+        qe(forall(A, forall(B, or(!subeq(A, B), !subeq(B, A))))),
         @"False"
     );
 }

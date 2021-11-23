@@ -87,7 +87,6 @@ impl fmt::Display for Formula {
             Formula::Trivial(false) => write!(f, "False"),
             Formula::Prop(s) => write!(f, "{}", s),
 
-            Formula::Not(box Formula::SubsetEq { sub, sup }) => write!(f, "{:?} c {:?}", sup, sub),
             Formula::SubsetEq { sub, sup } => write!(f, "{:?} ⊆ {:?}", sub, sup),
 
             Formula::Bind(kind, var, form @ box Formula::Bind(..)) => {

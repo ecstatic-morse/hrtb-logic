@@ -2,23 +2,20 @@ use insta::assert_display_snapshot;
 
 use crate::{short::*, Formula, Var};
 
-const A: Var = Var(0);
-const B: Var = Var(1);
-const C: Var = Var(2);
-const D: Var = Var(3);
-const E: Var = Var(4);
+macro_rules! vars {
+    ($($x:ident),*) => { $(
+        const $x: Var = var(stringify!($x).as_bytes()[0] as char);
+    )* }
+}
 
-const X: Var = Var(23);
-const Y: Var = Var(24);
-const Z: Var = Var(25);
+macro_rules! props {
+    ($($x:ident),*) => { $(
+        const $x: Formula = prop(stringify!($x));
+    )* }
+}
 
-const P: Formula = prop("P");
-const Q: Formula = prop("Q");
-const R: Formula = prop("R");
-const S: Formula = prop("S");
-const T: Formula = prop("T");
-const U: Formula = prop("U");
-const V: Formula = prop("V");
+vars!(A, B, C, D, E, X, Y, Z);
+props!(P, Q, R, S, T, U, V);
 
 #[test]
 fn nnf() {

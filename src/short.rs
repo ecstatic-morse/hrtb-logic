@@ -2,6 +2,14 @@
 
 use crate::{Formula, QuantifierKind, Var, P};
 
+pub const fn var(c: char) -> Var {
+    let c = c.to_ascii_lowercase();
+    assert!(c.is_ascii_lowercase());
+
+    let x = c as u32 - 'a' as u32;
+    Var(x)
+}
+
 pub fn not(form: Formula) -> Formula {
     if let Formula::Trivial(sat) = form {
         return (!sat).into();

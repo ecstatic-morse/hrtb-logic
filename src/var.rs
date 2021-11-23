@@ -15,9 +15,10 @@ impl fmt::Debug for Var {
             return write!(f, "'static");
         }
 
-        match self.0 {
-            c @ 0..=26 => write!(f, "'{}", char::from(b'a' + c as u8)),
-            n => write!(f, "_{}", n),
+        if self.0 <= u32::from(b'z' - b'a') {
+            write!(f, "'{}", char::from(b'a' + self.0 as u8))
+        } else {
+            write!(f, "_{}", self.0)
         }
     }
 }

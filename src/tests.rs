@@ -126,6 +126,11 @@ fn qe_atomless() {
         qe(forall(A, forall(B, or(!subeq(A, B), !subeq(B, A))))),
         @"False"
     );
+
+    assert_display_snapshot!(
+        qe(exists(Z, and(!subeq(A, Z), !subeq(Z, B)))),
+        @"¬('a ⊆ 'static)"
+    );
 }
 
 #[test]

@@ -51,8 +51,8 @@ pub fn subne(sub: Var, sup: Var) -> Formula {
     and(subeq(sub, sup), !and(subeq(sub, sup), subeq(sup, sub)))
 }
 
-pub fn not_empty(var: Var) -> Formula {
-    not(subeq(var, Var::EMPTY))
+pub fn empty(var: Var) -> Formula {
+    subeq(var, Var::EMPTY)
 }
 
 pub const fn prop(s: &'static str) -> Formula {

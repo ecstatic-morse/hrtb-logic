@@ -49,38 +49,65 @@ impl Formula {
     }
 
     fn eliminate_existential(&mut self, exst: Var) {
+        // Call the existentially quantified variable `z`.
+        let z = exst;
+
+        // Mario Carneiro's QE algorithm transforms an existentially quantified statement like this:
+        //
+        // ∃z, ⋀ᵢ aᵢ ⊆ z ∧ ⋀ᵢ z ⊆ bᵢ ∧ ⋀ᵢ ¬(cᵢ ⊆ z) ∧ ⋀ᵢ ¬(z ⊆ dᵢ)
+        //
+        // into the following:
+        //
+        // ⋀ᵢ,ⱼ aᵢ ⊆ bⱼ ∧ ⋀ᵢ,ⱼ ¬(cᵢ ⊆ aⱼ) ∧ ⋀ᵢ ¬(cᵢ ⊆ ∅) ∧ ⋀ᵢ,ⱼ ¬(bᵢ ⊆ dⱼ)
+        //
+        // I'll try to explain this part-by-part, although I won't prove that this is sufficient to
+        // show that z exists. Only that it is necessary.
+        //
+        // The intuition for the first term (a ⊆ b) is straightforward. If it does not hold, there
+        // is no "room" for z in between a and b, and the quantifier is unsatisfiable.
+        //
+        // We'll prove that the second is necessary by contradiction.
+        // Assume c ⊆ a. We want ∃z a ⊆ z ∧ ¬(c ⊆ z) to hold. By the transitive property, we can
+        // substitute a with c in the first inequality, which would give us P ∧ ¬P.
+        //
+        // The third term is required because ¬(c ⊆ z) is trivially unsatisfiable if c is the empty set.
+        //
+        // For the final term, use the same approach as for the second. Since there is no global
+        // upper bound, there is no analogue to the third term, ¬(c ⊆ z), involving d.
+
         let mut literals = match self.take() {
             Formula::And(l) => l,
             form => vec![form],
         };
 
-        let mut lowers = vec![];
-        let mut uppers = vec![];
-        let mut strict_uppers = vec![];
-        let mut strict_lowers = vec![];
+        let mut aa = vec![];
+        let mut bb = vec![];
+        let mut cc = vec![];
+        let mut dd = vec![];
 
         literals.retain(|form| {
-            if !form.has_var(exst) {
-                return true;
-            }
-
-            // There are four possible classes of subset relations for
-            // a single quantified variable (`a`):
+            // At this stage, any formula involving `z` is a subset relation (or its negation)
+            // that fits one of the patterns below.
             match *form {
-                // a ⊆ w
-                Formula::SubsetEq { sub, sup } if sub == exst => uppers.push(sup),
-                // x ⊆ a
-                Formula::SubsetEq { sub, sup } if sup == exst => lowers.push(sub),
-                // y ⊂ a
-                Formula::Not(box Formula::SubsetEq { sub, sup }) if sub == exst => {
-                    strict_lowers.push(sup)
+                // a ⊆ z
+                Formula::SubsetEq { sub: a, sup } if sup == z => aa.push(a),
+                // z ⊆ b
+                Formula::SubsetEq { sub, sup: b } if sub == z => bb.push(b),
+                // ¬(c ⊆ z)
+                Formula::Not(box Formula::SubsetEq { sub: c, sup }) if sup == z => {
+                    cc.push(c)
                 }
-                // a ⊂ z
-                Formula::Not(box Formula::SubsetEq { sub, sup }) if sup == exst => {
-                    strict_uppers.push(sub)
+                // ¬(z ⊆ d)
+                Formula::Not(box Formula::SubsetEq { sub, sup: d }) if sub == z => {
+                    dd.push(d)
                 }
 
-                _ => unreachable!(),
+                // Formulas that don't involve `z` can be moved outside the quantifier unchanged.
+                // Leave them as-is.
+                _ => {
+                    debug_assert!(!form.has_var(z));
+                    return true;
+                }
             }
 
             false
@@ -92,18 +119,19 @@ impl Formula {
             };
         }
 
-        // Relate each upper bound with each lower bound. If either bound is strict, the relation
-        // is also strict.
-        mk_product!(lowers, uppers, |(&sub, &sup)| subeq(sub, sup));
-        mk_product!(lowers, strict_uppers, |(&sub, &sup)| subne(sub, sup));
-        mk_product!(strict_lowers, uppers, |(&sub, &sup)| subne(sub, sup));
-        mk_product!(strict_lowers, strict_uppers, |(&sub, &sup)| subne(sub, sup));
+        // a ⊆ b
+        mk_product!(aa, bb, |(&a, &b)| subeq(a, b));
 
-        // If we have no lower bounds, we need to explicitly encode the fact that ∃a.a ⊂ x is only
-        // satisfiable if x is not the empty set. If we have lower bounds, this is implicit because
-        // we will have a strict subset constraint on some free region.
-        if lowers.is_empty() && strict_lowers.is_empty() {
-            literals.extend(strict_uppers.iter().map(|&upper| not_empty(upper)));
+        // ¬(c ⊆ a)
+        mk_product!(cc, aa, |(&c, &a)| !subeq(c, a));
+
+        // ¬(b ⊆ d)
+        mk_product!(bb, dd, |(&b, &d)| !subeq(b, d));
+
+        // We only need to add the ¬(c ⊆ ∅) constraint if a is empty. Otherwise it follows
+        // trivially from the second `mk_product`.
+        if aa.is_empty() {
+            literals.extend(cc.iter().map(|&c| !empty(c)));
         }
 
         let ret = match literals.len() {

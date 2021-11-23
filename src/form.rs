@@ -127,7 +127,7 @@ impl fmt::Display for Formula {
 
 impl Formula {
     pub fn take(&mut self) -> Self {
-        mem::replace(self, false.into())
+        mem::replace(self, prop("DUMMY"))
     }
 
     #[rustfmt::skip]

@@ -118,10 +118,19 @@ fn qe_atomless() {
         @"True"
     );
 
+    // Law of the excluded middle.
     assert_display_snapshot!(
-        qe(forall(A, forall(B, or(!subeq(A, B), !subeq(B, A))))),
+        qe(forall(A, forall(B, or(subeq(A, B), !subeq(A, B))))),
         @"True"
     );
+
+    // False when A and B are not comparable.
+    assert_display_snapshot!(
+        qe(forall(A, forall(B, or(subeq(A, B), subeq(B, A))))),
+        @"False"
+    );
+
+    // False when A = B
     assert_display_snapshot!(
         qe(forall(A, forall(B, or(!subeq(A, B), !subeq(B, A))))),
         @"False"
